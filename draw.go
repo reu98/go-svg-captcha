@@ -7,7 +7,7 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-const fileNameFont = "./fonts/Comismsh.ttf"
+const fileNameFont = "fonts/Comismsh.ttf"
 
 var font *canvas.Font
 
