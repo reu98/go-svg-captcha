@@ -4,8 +4,8 @@ const (
 	characters               string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	mathMinDefault           uint8  = 1
 	mathMaxDefault           uint16 = 9
-	widthDefault             uint8  = 150
-	heightDefault            uint8  = 50
+	widthDefault             uint16 = 150
+	heightDefault            uint16 = 50
 	noiseDefault             uint8  = 1
 	sizeDefault              uint8  = 4
 	fontSizeDefault          uint8  = 60
@@ -18,4 +18,5 @@ const (
 	fillColorMaxDefault      uint8  = 4
 	fillColorMinInverse      uint8  = 10
 	fillColorMaxInverse      uint8  = 14
+	regexColor               string = "^#(?:[0-9a-fA-F]{3}){1,2}$"
 )

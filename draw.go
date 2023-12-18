@@ -9,15 +9,32 @@ import (
 
 const fileNameFont = "./fonts/Comismsh.ttf"
 
+var font *canvas.Font
+
+func loadFont() (*canvas.Font, error) {
+	if font != nil {
+		return font, nil
+	}
+
+	fontFamily, err := canvas.LoadFontFile(fileNameFont, canvas.FontRegular)
+	if err != nil {
+		return nil, err
+	}
+
+	font = fontFamily
+
+	return fontFamily, nil
+}
+
 func (opt *option) drawText(text string) (string, error) {
 	width := widthDefault
 	if opt.Width != nil {
-		width = uint8(*opt.Width)
+		width = *opt.Width
 	}
 
 	height := heightDefault
 	if opt.Height != nil {
-		height = uint8(*opt.Height)
+		height = *opt.Height
 	}
 
 	isColor := false
@@ -32,14 +49,16 @@ func (opt *option) drawText(text string) (string, error) {
 		fillColorMax = fillColorMaxInverse
 	}
 
-	letterWidth := float32((width - paddingHorizontalDefault*2)) / float32(len(text))
+	letterWidth := float32((width - uint16(paddingHorizontalDefault)*2)) / float32(len(text))
 	result := ""
 	for index, char := range text {
 		var fill string
 		if isColor {
 			fill = randomColor(opt.BackgroundColor)
 		} else {
-			fill = randomGreyColor(uint8(fillColorMin), uint8(fillColorMax))
+			min := uint8(fillColorMin)
+			max := uint8(fillColorMax)
+			fill = randomGreyColor(&min, &max)
 		}
 
 		x := letterWidth*float32(index) + letterWidth/2
@@ -55,7 +74,7 @@ func (opt *option) drawText(text string) (string, error) {
 }
 
 func (opt *option) drawChar(char rune, x float32, y float32) (string, error) {
-	fontFamily, err := canvas.LoadFontFile(fileNameFont, canvas.FontRegular)
+	fontFamily, err := loadFont()
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +91,7 @@ func (opt *option) drawChar(char rune, x float32, y float32) (string, error) {
 		return "", err
 	}
 
-	return opt.randomTranslatePath(path, x, y), nil
+	return randomTranslatePath(path, x, y), nil
 }
 
 func (opt *option) drawLineNoise() string {
@@ -91,12 +110,12 @@ func (opt *option) drawLineNoise() string {
 
 	width := widthDefault
 	if opt.Width != nil {
-		width = uint8(*opt.Width)
+		width = *opt.Width
 	}
 
 	height := heightDefault
 	if opt.Height != nil {
-		height = uint8(*opt.Height)
+		height = *opt.Height
 	}
 
 	result := ""
@@ -105,13 +124,13 @@ func (opt *option) drawLineNoise() string {
 		if opt.IsColor != nil && *opt.IsColor {
 			stroke = randomColor(opt.BackgroundColor)
 		} else {
-			stroke = randomGreyColor(min, max)
+			stroke = randomGreyColor(&min, &max)
 		}
 
 		moveLine := fmt.Sprintf("%v %v", randomInt(1, 21), randomInt(1, uint16(height)-1))
-		cubicStart := fmt.Sprintf("%v %v", randomInt(width/2-21, uint16(width/2+21)), randomInt(1, uint16(height-1)))
-		cubicMid := fmt.Sprintf("%v %v", randomInt(width/2-21, uint16(width/2+21)), randomInt(1, uint16(height-1)))
-		cubicEnd := fmt.Sprintf("%v %v", randomInt(width-21, uint16(width-1)), randomInt(1, uint16(height-1)))
+		cubicStart := fmt.Sprintf("%v %v", randomInt(uint8(width/2-21), uint16(width/2+21)), randomInt(1, uint16(height-1)))
+		cubicMid := fmt.Sprintf("%v %v", randomInt(uint8(width/2-21), uint16(width/2+21)), randomInt(1, uint16(height-1)))
+		cubicEnd := fmt.Sprintf("%v %v", randomInt(uint8(width-21), uint16(width-1)), randomInt(1, uint16(height-1)))
 		result += fmt.Sprintf("<path d=\"M%v C%v,%v,%v\" stroke=\"%v\" fill=\"none\"/> ", moveLine, cubicStart, cubicMid, cubicEnd, stroke)
 		index++
 	}
@@ -119,23 +138,23 @@ func (opt *option) drawLineNoise() string {
 	return result
 }
 
-func (opt *option) randomTranslatePath(p *canvas.Path, x, y float32) string {
-	x = opt.calculateRandomOffset(x)
-	y = opt.calculateRandomOffset(y)
+func randomTranslatePath(p *canvas.Path, x, y float32) string {
+	x = calculateRandomOffset(x)
+	y = calculateRandomOffset(y)
 	return p.Translate(float64(x), float64(y)).String()
 }
 
-func (opt *option) calculateRandomOffset(offset float32) float32 {
-	operation := opt.randomOperation()
+func calculateRandomOffset(offset float32) float32 {
+	operation := randomOperation()
 
 	if operation == MathOperatorPlus {
-		return offset + opt.randomOffset()
+		return offset + randomOffset()
 	}
 
-	return offset - opt.randomOffset()
+	return offset - randomOffset()
 }
 
-func (opt *option) randomOperation() matchOperator {
+func randomOperation() matchOperator {
 	if rand.Float32() < 0.5 {
 		return MathOperatorMinus
 	}
@@ -143,6 +162,6 @@ func (opt *option) randomOperation() matchOperator {
 	return MathOperatorPlus
 }
 
-func (opt *option) randomOffset() float32 {
+func randomOffset() float32 {
 	return (rand.Float32() * 0.2) - 0.1
 }

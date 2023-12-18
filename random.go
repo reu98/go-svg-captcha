@@ -52,19 +52,25 @@ func randomInt(min uint8, max uint16) uint16 {
 	return uint16(float32(min) + rand.Float32()*float32(max-uint16(min)))
 }
 
-func randomGreyColor(min uint8, max uint8) string {
-	if max > 9 {
-		max = 9
+func randomGreyColor(min, max *uint8) string {
+	var greyColorMin uint8 = 1
+	if min != nil {
+		greyColorMin = *min
 	}
 
-	colorValue := randomInt(min, uint16(max))
+	var greyColorMax uint8 = 9
+	if max != nil {
+		greyColorMax = *max
+	}
+
+	colorValue := randomInt(greyColorMin, uint16(greyColorMax))
 
 	return fmt.Sprintf("#%X%X%X", colorValue, colorValue, colorValue)
 }
 
 func randomColor(bgColor *string) string {
 	if bgColor != nil {
-		regexColor := regexp.MustCompile("^#(?:[0-9a-fA-F]{3}){1,2}$")
+		regexColor := regexp.MustCompile(regexColor)
 		if !regexColor.MatchString(*bgColor) {
 			bgColor = nil
 		}
@@ -119,14 +125,18 @@ func getLightness(bgColor string) float32 {
 	return float32((max + min) / (2 * 255))
 }
 
-func convertHueToRgb(hue float32, p, q float32) float32 {
+func convertHueToRgb(hue, p, q float32) float32 {
+	var one float32 = 1
+	var two float32 = 2
+	var three float32 = 3
+	var six float32 = 6
 	switch {
-	case hue*6 < 1:
-		return p + (q-p)*float32(hue)*6
-	case hue*2 < 1:
+	case hue*six < one:
+		return p + (q-p)*hue*six
+	case hue*two < one:
 		return q
-	case hue*3 < 2:
-		return p + (q-p)*((2/3)-float32(hue))*6
+	case hue*three < two:
+		return p + (q-p)*((two/three)-hue)*six
 	default:
 		return p
 	}

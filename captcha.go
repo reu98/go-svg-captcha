@@ -32,19 +32,52 @@ func CreateByText(option OptionText) (*Result, error) {
 	}, err
 }
 
+func CreateByMath(option OptionMath) (*Result, error) {
+	opt := getOptionByMath(option)
+	min := mathMinDefault
+	if opt.MathMin != nil {
+		min = *opt.MathMin
+	}
+
+	max := mathMaxDefault
+	if opt.MathMax != nil {
+		max = *opt.MathMax
+	}
+
+	var operator matchOperator
+	if opt.MathOperator != nil {
+		operator = *opt.MathOperator
+	} else {
+		operator = randomOperation()
+	}
+
+	resultMath := generateMathOperation(&min, &max, &operator)
+	data, err := createCaptcha((*resultMath).Equation, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Result{
+		Data: data,
+		Text: (*resultMath).Text,
+	}, nil
+}
+
 func createCaptcha(text string, opt *option) (string, error) {
 	width := widthDefault
 	if opt.Width != nil {
-		width = uint8(*opt.Width)
+		width = *opt.Width
 	}
 
 	height := heightDefault
-	bg := ""
 	if opt.Height != nil {
-		height = uint8(*opt.Height)
+		height = *opt.Height
 	}
+
+	bg := ""
 	if opt.BackgroundColor != nil {
-		opt.IsColor = setBooleanTrue()
+		isColor := true
+		opt.IsColor = &isColor
 		bg = *opt.BackgroundColor
 	}
 
@@ -61,9 +94,4 @@ func createCaptcha(text string, opt *option) (string, error) {
 	result += fmt.Sprintf("%v%v</svg>", lineNoise, pathText)
 
 	return result, nil
-}
-
-func setBooleanTrue() *bool {
-	result := true
-	return &result
 }
