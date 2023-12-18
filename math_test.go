@@ -52,7 +52,7 @@ func TestGenerateMathOperationByPlus(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Greater(t, result, 0)
-	require.LessOrEqual(t, result, int(max*2))
+	require.LessOrEqual(t, result, int(max)*2)
 }
 
 func TestGenerateMathOperationByMinus(t *testing.T) {
