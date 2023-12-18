@@ -3,11 +3,11 @@ package captcha
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
 
 	"github.com/tdewolff/canvas"
 )
-
-const fileNameFont = "fonts/Comismsh.ttf"
 
 var font *canvas.Font
 
@@ -16,7 +16,13 @@ func loadFont() (*canvas.Font, error) {
 		return font, nil
 	}
 
-	fontFamily, err := canvas.LoadFontFile(fileNameFont, canvas.FontRegular)
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	fontPath := filepath.Join(dir, "fonts", "Comismsh.ttf")
+	fontFamily, err := canvas.LoadFontFile(fontPath, canvas.FontRegular)
 	if err != nil {
 		return nil, err
 	}
