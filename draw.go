@@ -3,31 +3,16 @@ package captcha
 import (
 	"fmt"
 	"math/rand"
-	"os"
-	"path/filepath"
 
+	"github.com/reu98/go-svg-captcha/fonts"
 	"github.com/tdewolff/canvas"
 )
 
-var font *canvas.Font
-
 func loadFont() (*canvas.Font, error) {
-	if font != nil {
-		return font, nil
-	}
-
-	dir, err := os.Getwd()
+	fontFamily, err := canvas.LoadFont(fonts.Comismsh, 0, canvas.FontRegular)
 	if err != nil {
 		return nil, err
 	}
-
-	fontPath := filepath.Join(dir, "fonts", "Comismsh.ttf")
-	fontFamily, err := canvas.LoadFontFile(fontPath, canvas.FontRegular)
-	if err != nil {
-		return nil, err
-	}
-
-	font = fontFamily
 
 	return fontFamily, nil
 }
