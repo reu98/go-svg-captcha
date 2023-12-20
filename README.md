@@ -1,1 +1,1 @@
-# go-svg-captcha
+> Package captcha provides an easy to use
