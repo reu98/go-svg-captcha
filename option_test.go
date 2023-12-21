@@ -19,7 +19,6 @@ func TestGetOptionByText(t *testing.T) {
 	require.Nil(t, data.IsInverse)
 	require.Nil(t, data.Noise)
 	require.Nil(t, data.BackgroundColor)
-	require.Nil(t, data.Text)
 	require.Nil(t, data.IgnoreCharacters)
 	require.Nil(t, data.CharactersPreset)
 }

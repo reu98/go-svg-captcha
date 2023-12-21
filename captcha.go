@@ -1,25 +1,20 @@
+// Package captcha provides an easy to use
 package captcha
 
 import "fmt"
 
-type Captcha interface {
-	CreateByText(*OptionText) Result
-	CreateByMath(*OptionMath) Result
-}
-
 type Result struct {
+	// A random string or the result of an operation.
 	Text string
+
+	// The HTML code snippet for SVG.
 	Data string
 }
 
+// CreateByText: generate a new captcha
 func CreateByText(option OptionText) (*Result, error) {
-	var text string
 	opt := getOptionByText(option)
-	if opt.Text != nil {
-		text = *opt.Text
-	} else {
-		text = opt.randomText()
-	}
+	text := opt.randomText()
 
 	data, err := createCaptcha(text, opt)
 	if err != nil {
@@ -32,6 +27,8 @@ func CreateByText(option OptionText) (*Result, error) {
 	}, err
 }
 
+// CreateByMath: Generate a new captcha.
+// It will return a captcha with an operation like 1 + 1.
 func CreateByMath(option OptionMath) (*Result, error) {
 	opt := getOptionByMath(option)
 	min := mathMinDefault

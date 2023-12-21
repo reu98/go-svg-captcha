@@ -8,7 +8,8 @@ const (
 	heightDefault            uint16 = 50
 	noiseDefault             uint8  = 1
 	sizeDefault              uint8  = 4
-	fontSizeDefault          uint8  = 60
+	fontSizeDefault          uint8  = 12
+	ratioFontSize            uint8  = 4
 	noiseGreyColorMinDefault uint8  = 1
 	noiseGreyColorMaxDefault uint8  = 9
 	noiseGreyColorMinInverse uint8  = 7

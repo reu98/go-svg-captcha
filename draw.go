@@ -70,7 +70,7 @@ func (opt *option) drawChar(char rune, x float32, y float32) (string, error) {
 		return "", err
 	}
 
-	fontSize := fontSizeDefault
+	fontSize := fontSizeDefault * ratioFontSize
 	if opt.FontSize != nil && *opt.FontSize > 0 {
 		fontSize = *opt.FontSize
 	}
