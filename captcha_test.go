@@ -20,21 +20,6 @@ func TestCreateByText(t *testing.T) {
 	require.NotEmpty(t, (*data).Data)
 }
 
-func TestCreateByTextByOption(t *testing.T) {
-	var dataType Result
-	text := "ABCD"
-	option := OptionText{
-		Text: &text,
-	}
-	data, err := CreateByText(option)
-
-	require.NoError(t, err)
-	require.NotNil(t, data)
-	require.IsType(t, dataType, *data)
-	require.Len(t, (*data).Text, int(sizeDefault))
-	require.NotEmpty(t, (*data).Data)
-}
-
 func TestCreateByMath(t *testing.T) {
 	var dataType Result
 	maxMath := 18

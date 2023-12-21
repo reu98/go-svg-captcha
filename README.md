@@ -68,7 +68,7 @@ see [contributing.md](CONTRIBUTING.md) for more detail.
 
 ## Roadmap
 
-- [ ] Finish [Documentation](https://pkg.go.dev/github.com/reu98/go-svg-captcha)
+- [x] Finish [Documentation](https://pkg.go.dev/github.com/reu98/go-svg-captcha)
 - [ ] Generate multiple captchas
 - [ ] Write image
 - [ ] Upload the image to the cloud
