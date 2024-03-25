@@ -2,58 +2,43 @@ package captcha
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/reu98/go-svg-captcha/fonts"
 	"github.com/tdewolff/canvas"
 )
 
-func loadFont() (*canvas.Font, error) {
-	fontFamily, err := canvas.LoadFont(fonts.Comismsh, 0, canvas.FontRegular)
-	if err != nil {
-		return nil, err
-	}
-
-	return fontFamily, nil
-}
-
 func (opt *option) drawText(text string) (string, error) {
-	width := widthDefault
-	if opt.Width != nil {
-		width = *opt.Width
-	}
-
-	height := heightDefault
-	if opt.Height != nil {
-		height = *opt.Height
-	}
-
-	isColor := false
-	if opt.IsColor != nil && *opt.IsColor {
-		isColor = true
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
 	fillColorMin := fillColorMinDefault
 	fillColorMax := fillColorMaxDefault
-	if opt.IsInverse != nil && *opt.IsInverse {
+	if opt.isInverse {
 		fillColorMin = fillColorMinInverse
 		fillColorMax = fillColorMaxInverse
 	}
 
-	letterWidth := float32((width - uint16(paddingHorizontalDefault)*2)) / float32(len(text))
+	letterWidth := float32((opt.width - uint16(paddingHorizontalDefault)*2)) / float32(len(text))
 	result := ""
 	for index, char := range text {
 		var fill string
-		if isColor {
-			fill = randomColor(opt.BackgroundColor)
+		if opt.isColor {
+			fill = opt.randomColor()
 		} else {
 			min := uint8(fillColorMin)
 			max := uint8(fillColorMax)
 			fill = randomGreyColor(&min, &max)
 		}
 
+		minY := float32(opt.height) / 4
+		maxY := float32(opt.height) / 2
 		x := letterWidth*float32(index) + letterWidth/2
-		y := float32(height / 2)
+		y := minY + rand.Float32()*(maxY-minY)
 		d, err := opt.drawChar(char, x, y)
 		if err != nil {
 			return "", err
@@ -64,20 +49,28 @@ func (opt *option) drawText(text string) (string, error) {
 	return result, nil
 }
 
+func (opt *option) drawNoise() string {
+	var result string
+	totalNoise := (opt.width * opt.height) / 28
+	for i := 0; i < int(totalNoise); i++ {
+		x := rand.Intn(int(opt.width))
+		y := rand.Intn(int(opt.height))
+		color := randomColor()
+
+		result += fmt.Sprintf("<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />", x, y, noiseRadius, color)
+	}
+
+	return result
+}
+
 func (opt *option) drawChar(char rune, x float32, y float32) (string, error) {
-	fontFamily, err := loadFont()
+	fontFamily, err := loadFont(opt.fontPath)
 	if err != nil {
 		return "", err
 	}
 
-	fontSize := fontSizeDefault * ratioFontSize
-	if opt.FontSize != nil && *opt.FontSize > 0 {
-		fontSize = *opt.FontSize
-	}
-
-	face := fontFamily.Face(float64(fontSize), nil)
-
-	path, _, err := face.ToPath(string(char))
+	fontFace := fontFamily.Face(float64(opt.fontSize), nil)
+	path, _, err := fontFace.ToPath(string(char))
 	if err != nil {
 		return "", err
 	}
@@ -85,45 +78,35 @@ func (opt *option) drawChar(char rune, x float32, y float32) (string, error) {
 	return randomTranslatePath(path, x, y), nil
 }
 
-func (opt *option) drawLineNoise() string {
-	index := 0
-	noise := noiseDefault
-	if opt.Noise != nil && *opt.Noise > noiseDefault {
-		noise = *opt.Noise
-	}
-
-	min := noiseGreyColorMinDefault
-	max := noiseGreyColorMaxDefault
-	if opt.IsInverse != nil && *opt.IsInverse {
-		min = noiseGreyColorMinInverse
-		max = noiseGreyColorMaxInverse
-	}
-
-	width := widthDefault
-	if opt.Width != nil {
-		width = *opt.Width
-	}
-
-	height := heightDefault
-	if opt.Height != nil {
-		height = *opt.Height
-	}
-
-	result := ""
-	for uint8(index) < noise {
-		var stroke string
-		if opt.IsColor != nil && *opt.IsColor {
-			stroke = randomColor(opt.BackgroundColor)
-		} else {
-			stroke = randomGreyColor(&min, &max)
+func loadFont(fontPath string) (*canvas.Font, error) {
+	if fontPath != "" {
+		fontFamily, err := canvas.LoadFontFile(fontPath, canvas.FontRegular)
+		if err != nil {
+			return nil, err
 		}
 
-		moveLine := fmt.Sprintf("%v %v", randomInt(1, 21), randomInt(1, uint16(height)-1))
-		cubicStart := fmt.Sprintf("%v %v", randomInt(uint8(width/2-21), uint16(width/2+21)), randomInt(1, uint16(height-1)))
-		cubicMid := fmt.Sprintf("%v %v", randomInt(uint8(width/2-21), uint16(width/2+21)), randomInt(1, uint16(height-1)))
-		cubicEnd := fmt.Sprintf("%v %v", randomInt(uint8(width-21), uint16(width-1)), randomInt(1, uint16(height-1)))
+		return fontFamily, nil
+	}
+
+	fontFamily, err := canvas.LoadFont(fonts.Comismsh, 0, canvas.FontRegular)
+	if err != nil {
+		return nil, err
+	}
+
+	return fontFamily, nil
+}
+
+func (opt *option) drawCurve() string {
+	count := opt.curve
+	var result string
+	for i := 0; i < int(count); i++ {
+		stroke := opt.randomColor()
+		moveLine := fmt.Sprintf("%v %v", randomInt(1, 21), randomInt(1, uint16(opt.height)-1))
+		cubicStart := fmt.Sprintf("%v %v", randomInt(uint8(opt.width/2-21), uint16(opt.width/2+21)), randomInt(1, uint16(opt.height-1)))
+		cubicMid := fmt.Sprintf("%v %v", randomInt(uint8(opt.width/2-21), uint16(opt.width/2+21)), randomInt(1, uint16(opt.height-1)))
+		cubicEnd := fmt.Sprintf("%v %v", randomInt(uint8(opt.width-21), uint16(opt.width-1)), randomInt(1, uint16(opt.height-1)))
+
 		result += fmt.Sprintf("<path d=\"M%v C%v,%v,%v\" stroke=\"%v\" fill=\"none\"/> ", moveLine, cubicStart, cubicMid, cubicEnd, stroke)
-		index++
 	}
 
 	return result
@@ -143,14 +126,6 @@ func calculateRandomOffset(offset float32) float32 {
 	}
 
 	return offset - randomOffset()
-}
-
-func randomOperation() matchOperator {
-	if rand.Float32() < 0.5 {
-		return MathOperatorMinus
-	}
-
-	return MathOperatorPlus
 }
 
 func randomOffset() float32 {

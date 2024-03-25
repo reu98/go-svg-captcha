@@ -10,26 +10,11 @@ type resultMath struct {
 	Equation string
 }
 
-func generateMathOperation(min *uint8, max *uint16, operator *matchOperator) *resultMath {
-	mathMin := mathMinDefault
-	if min != nil {
-		mathMin = *min
-	}
+func (opt *option) generateMathOperation() *resultMath {
+	operandLeft := randomInt(opt.mathMin, opt.mathMax)
+	operandRight := randomInt(opt.mathMin, opt.mathMax)
 
-	mathMax := mathMaxDefault
-	if max != nil {
-		mathMax = *max
-	}
-
-	mathOperator := MathOperatorPlus
-	if operator != nil {
-		mathOperator = *operator
-	}
-
-	operandLeft := randomInt(mathMin, mathMax)
-	operandRight := randomInt(mathMin, mathMax)
-
-	if mathOperator == MathOperatorPlus {
+	if opt.mathOperator == MathOperatorPlus {
 		return generateMathOperationPlus(operandLeft, operandRight)
 	}
 

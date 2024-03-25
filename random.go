@@ -2,9 +2,9 @@ package captcha
 
 import (
 	"fmt"
+	"image/color"
+	"math"
 	"math/rand"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -12,25 +12,17 @@ const (
 	randomColors             = 24
 	saturationMin            = 60
 	saturationMax            = 80
-	lightnessDefault float32 = 1.0
+	lightnessDefault float64 = 1.0
 )
 
 func (opt *option) randomText() string {
-	size := sizeDefault
-	if opt.Size != nil {
-		size = *opt.Size
+	chars := opt.charactersPreset
+
+	if opt.ignoreCharacters != "" {
+		chars = removeCharacters(chars, opt.ignoreCharacters)
 	}
 
-	chars := characters
-	if opt.CharactersPreset != nil {
-		chars = *opt.CharactersPreset
-	}
-
-	if opt.IgnoreCharacters != nil {
-		chars = removeCharacters(chars, *opt.IgnoreCharacters)
-	}
-
-	result := make([]byte, size)
+	result := make([]byte, opt.size)
 	for i := range result {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
@@ -68,85 +60,77 @@ func randomGreyColor(min, max *uint8) string {
 	return fmt.Sprintf("#%X%X%X", colorValue, colorValue, colorValue)
 }
 
-func randomColor(bgColor *string) string {
-	if bgColor != nil {
-		regexColor := regexp.MustCompile(regexColor)
-		if !regexColor.MatchString(*bgColor) {
-			bgColor = nil
-		}
-	}
+func randomColor() string {
+	red := rand.Intn(256)
+	green := rand.Intn(256)
+	blue := rand.Intn(256)
+	alpha := rand.Intn(255)
 
-	hue := float32(randomInt(0, uint16(randomColors))) / randomColors
-	saturation := float32(randomInt(saturationMin, saturationMax)) / 100
-	bgLightness := lightnessDefault
-	if bgColor != nil {
-		bgLightness = getLightness(*bgColor)
-	}
+	color := blue | (green << 8) | (red << 16) | (alpha << 24)
 
-	maxLightness := int(bgLightness*100) - 25
-	minLightness := int(bgLightness*100) - 45
-	if bgLightness < 0.5 {
-		minLightness = int(bgLightness*100) + 25
-		maxLightness = int(bgLightness*100) + 45
-	}
-
-	lightness := float32(randomInt(uint8(minLightness), uint16(maxLightness))) / 100
-	calculateQ := lightness + saturation - (lightness * saturation)
-	if lightness < 0.5 {
-		calculateQ = lightness * (lightness + saturation)
-	}
-
-	calculateP := (2 * lightness) - calculateQ
-	red := int(convertHueToRgb(hue+(1/3), calculateP, calculateQ) * 255)
-	green := int(convertHueToRgb(hue, calculateP, calculateQ) * 255)
-	blue := int(convertHueToRgb(hue-(1/3), calculateP, calculateQ) * 255)
-	color := (blue | (green << 8) | (red << 16) | (1 << 24))
-	hex := strconv.FormatInt(int64(color), 16)
-	return fmt.Sprintf("#%v", hex[1:])
+	return fmt.Sprintf("#%06X", color)
 }
 
-func getLightness(bgColor string) float32 {
-	rgbColor := trimFirstRune(bgColor)
-	if len(rgbColor) == 3 {
-		rgbColor = fmt.Sprintf("%v%v%v%v%v%v", string(rgbColor[0]), string(rgbColor[0]), string(rgbColor[1]), string(rgbColor[1]), string(rgbColor[2]), string(rgbColor[2]))
+func (opt *option) randomColor() string {
+	hue := float64(rand.Intn(361)) / 360
+	saturation := float64(randomInt(saturationMin, saturationMax)) / 100
+	baseLightness := opt.getLightness()
+	value := baseLightness + 0.3 + rand.Float64()*0.2
+	if baseLightness >= 0.5 {
+		value = baseLightness - 0.3 - rand.Float64()*0.2
 	}
 
-	hex, err := strconv.ParseInt(rgbColor, 16, 64)
-	if err != nil {
+	r, g, b := convertHueToRgb(hue, saturation, value)
+	color := b | (g << 8) | (r << 16) | (1 << 24)
+	return fmt.Sprintf("#%06X", color)[:7]
+}
+
+func (opt *option) getLightness() float64 {
+	r, g, b, a := opt.backgroundColor.RGBA()
+	if opt.backgroundColor == color.Transparent || a == 0 {
 		return lightnessDefault
 	}
 
-	red := hex >> 16
-	green := (hex >> 8) & 255
-	blue := hex & 255
-	min := getMin(int(red), int(green), int(blue))
-	max := getMax(int(red), int(green), int(blue))
+	max := getMinColor(r>>8, g>>8, b>>8)
+	min := getMaxColor(r>>8, g>>8, b>>8)
 
-	return float32((max + min) / (2 * 255))
+	return (float64(max) + float64(min)) / (2 * 255)
 }
 
-func convertHueToRgb(hue, p, q float32) float32 {
-	var one float32 = 1
-	var two float32 = 2
-	var three float32 = 3
-	var six float32 = 6
-	switch {
-	case hue*six < one:
-		return p + (q-p)*hue*six
-	case hue*two < one:
-		return q
-	case hue*three < two:
-		return p + (q-p)*((two/three)-hue)*six
-	default:
-		return p
+func convertHueToRgb(h, s, v float64) (r, g, b uint32) {
+	var i = math.Floor(h * 6)
+	var f = h*6 - i
+	var p = v * (1.0 - s)
+	var q = v * (1.0 - f*s)
+	var t = v * (1 - (1-f)*s)
+
+	var red, green, blue float64
+	switch int(i) % 6 {
+	case 0:
+		red, green, blue = v, t, p
+	case 1:
+		red, green, blue = q, v, p
+	case 2:
+		red, green, blue = p, v, t
+	case 3:
+		red, green, blue = p, q, v
+	case 4:
+		red, green, blue = t, p, v
+	case 5:
+		red, green, blue = v, p, q
 	}
+
+	r = uint32(red * 255)
+	r |= r << 8
+	g = uint32(green * 255)
+	g |= g << 8
+	b = uint32(blue * 255)
+	b |= b << 8
+
+	return
 }
 
-func trimFirstRune(s string) string {
-	return strings.TrimPrefix(s, string(s[0]))
-}
-
-func getMax(num ...int) int {
+func getMaxColor(num ...uint32) uint32 {
 	result := num[0]
 	for _, value := range num {
 		if result < value {
@@ -157,7 +141,7 @@ func getMax(num ...int) int {
 	return result
 }
 
-func getMin(num ...int) int {
+func getMinColor(num ...uint32) uint32 {
 	result := num[0]
 	for _, value := range num {
 		if result > value {
@@ -166,4 +150,12 @@ func getMin(num ...int) int {
 	}
 
 	return result
+}
+
+func randomOperation() mathOperator {
+	if rand.Float32() < 0.5 {
+		return MathOperatorMinus
+	}
+
+	return MathOperatorPlus
 }

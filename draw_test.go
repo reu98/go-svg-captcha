@@ -10,21 +10,21 @@ import (
 func TestRandomOffset(t *testing.T) {
 	data := randomOffset()
 
-	require.LessOrEqual(t, data, lightnessDefault)
+	require.LessOrEqual(t, data, float32(lightnessDefault))
 }
 
 func TestRandomOperation(t *testing.T) {
-	var dataType matchOperator
+	var dataType mathOperator
 	data := randomOperation()
 
 	require.IsType(t, dataType, data)
-	require.Contains(t, []matchOperator{MathOperatorMinus, MathOperatorPlus}, data)
+	require.Contains(t, []mathOperator{MathOperatorMinus, MathOperatorPlus}, data)
 }
 
 func TestDrawText(t *testing.T) {
-	option := option{}
-	text := option.randomText()
-	data, err := option.drawText(text)
+	opt := getOptionByText(OptionText{})
+	text := opt.randomText()
+	data, err := opt.drawText(text)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
@@ -33,16 +33,14 @@ func TestDrawText(t *testing.T) {
 func TestDrawTextWithoutDefault(t *testing.T) {
 	width := uint16(rand.Uint32())
 	height := uint16(rand.Uint32())
-	isColor := true
-	isInverse := true
-	option := option{
-		Width:     &width,
-		Height:    &height,
-		IsColor:   &isColor,
-		IsInverse: &isInverse,
-	}
-	text := option.randomText()
-	data, err := option.drawText(text)
+	opt := getOptionByText(OptionText{
+		Width:     width,
+		Height:    height,
+		IsColor:   true,
+		IsInverse: true,
+	})
+	text := opt.randomText()
+	data, err := opt.drawText(text)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, data)

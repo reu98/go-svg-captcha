@@ -43,8 +43,13 @@ func TestGenerateMathOperationByPlus(t *testing.T) {
 	operator := MathOperatorPlus
 	min := uint8(rand.Uint32())
 	max := uint16(rand.Uint32())
+	opt := &option{
+		mathOperator: operator,
+		mathMin:      min,
+		mathMax:      max,
+	}
 
-	data := generateMathOperation(&min, &max, &operator)
+	data := opt.generateMathOperation()
 
 	require.NotNil(t, data)
 
@@ -59,8 +64,13 @@ func TestGenerateMathOperationByMinus(t *testing.T) {
 	operator := MathOperatorMinus
 	min := uint8(rand.Uint32())
 	max := uint16(rand.Uint32())
+	opt := &option{
+		mathMin:      min,
+		mathOperator: operator,
+		mathMax:      max,
+	}
 
-	data := generateMathOperation(&min, &max, &operator)
+	data := opt.generateMathOperation()
 	require.NotNil(t, data)
 	fmt.Printf("%v - %v - %v\n", min, max, data.Text)
 	result, err := strconv.Atoi(data.Text)
@@ -71,7 +81,8 @@ func TestGenerateMathOperationByMinus(t *testing.T) {
 }
 
 func TestGenerateMathOperation(t *testing.T) {
-	data := generateMathOperation(nil, nil, nil)
+	opt := getOptionByMath(OptionMath{})
+	data := opt.generateMathOperation()
 
 	require.NotNil(t, data)
 

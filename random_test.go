@@ -1,7 +1,7 @@
 package captcha
 
 import (
-	"fmt"
+	"image/color"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+const regexColor = "^#(?:[0-9a-fA-F]{3}){1,2}$"
 
 func TestRandomInt(t *testing.T) {
 	min := uint8(rand.Uint32())
@@ -24,113 +26,98 @@ func TestGetLightnessWithValidColor(t *testing.T) {
 	red := randomInt(1, 255)
 	green := randomInt(1, 255)
 	blue := randomInt(1, 255)
-	hex := fmt.Sprintf("#%02x%02x%02x", red, green, blue)
+	backgroundColor := color.RGBA{R: uint8(red), G: uint8(green), B: uint8(blue), A: 255}
+	opt := &option{
+		backgroundColor: backgroundColor,
+	}
 
-	data := getLightness(hex)
-
-	require.LessOrEqual(t, data, lightnessDefault)
-}
-
-func TestGetLightnessWithValidShortColor(t *testing.T) {
-	hex := "#DDD"
-	data := getLightness(hex)
+	data := opt.getLightness()
 
 	require.LessOrEqual(t, data, lightnessDefault)
 }
 
-func TestGetLightnessWithInvalidColor(t *testing.T) {
-	hex := "#GGGG"
-
-	data := getLightness(hex)
-
-	require.Equal(t, data, lightnessDefault)
-}
-
-func TestGetMax(t *testing.T) {
+func TestGetMaxColor(t *testing.T) {
 	testCase := []struct {
-		input    []int
-		expected int
+		input    []uint32
+		expected uint32
 	}{
 		{
-			input:    []int{1, 2, 3, 4, 5},
+			input:    []uint32{1, 2, 3, 4, 5},
 			expected: 5,
 		},
 		{
-			input:    []int{99, 299, 0, -10, -100},
-			expected: 299,
+			input:    []uint32{99, 256, 0, 10, 100},
+			expected: 256,
 		},
 		{
-			input:    []int{-10, -5, 0, 5, 10},
+			input:    []uint32{9, 4, 0, 5, 10},
 			expected: 10,
 		},
 		{
-			input:    []int{100, 200, 150, 300},
+			input:    []uint32{100, 200, 150, 300},
 			expected: 300,
 		},
 	}
 
 	for _, tc := range testCase {
-		data := getMax(tc.input...)
+		data := getMaxColor(tc.input...)
 		require.Equal(t, data, tc.expected)
 	}
 }
 
-func TestGetMin(t *testing.T) {
+func TestGetMinColor(t *testing.T) {
 	testCase := []struct {
-		input    []int
-		expected int
+		input    []uint32
+		expected uint32
 	}{
 		{
-			input:    []int{1, 2, 3, 4, 5},
+			input:    []uint32{1, 2, 3, 4, 5},
 			expected: 1,
 		},
 		{
-			input:    []int{99, 299, 0, -10, -100},
-			expected: -100,
+			input:    []uint32{99, 256, 1, 10, 100},
+			expected: 1,
 		},
 		{
-			input:    []int{-10, -5, 0, 5, 10},
-			expected: -10,
+			input:    []uint32{99, 2, 0, 5, 10},
+			expected: 0,
 		},
 		{
-			input:    []int{100, 200, 150, 300},
+			input:    []uint32{100, 200, 150, 256},
 			expected: 100,
 		},
 	}
 
 	for _, tc := range testCase {
-		data := getMin(tc.input...)
+		data := getMinColor(tc.input...)
 		require.Equal(t, data, tc.expected)
 	}
 }
 
 func TestRandomColorWithoutBg(t *testing.T) {
-	index := 1
 	maxTestCase := 50
 	regex := regexp.MustCompile(regexColor)
+	opt := &option{
+		backgroundColor: color.Transparent,
+	}
 
-	for ; index <= maxTestCase; index++ {
-		data := randomColor(nil)
+	for i := 0; i < maxTestCase; i++ {
+		data := opt.randomColor()
 		require.Regexp(t, regex, data)
 	}
 }
 
 func TestRandomColorWithBg(t *testing.T) {
-	bgColor := "#000"
-	data := randomColor(&bgColor)
-
+	maxTestCase := 50
 	regex := regexp.MustCompile(regexColor)
+	opt := &option{
+		backgroundColor: color.Black,
+	}
 
-	require.Regexp(t, regex, data)
-}
-
-func TestRandomColorWithInvalidBg(t *testing.T) {
-	bgColor := "#ggg"
-	data := randomColor(&bgColor)
-
-	regex := regexp.MustCompile(regexColor)
-
-	require.Regexp(t, regex, data)
+	for i := 0; i < maxTestCase; i++ {
+		data := opt.randomColor()
+		require.Regexp(t, regex, data)
+	}
 }
 
 func TestRemoveCharacters(t *testing.T) {
@@ -176,28 +163,28 @@ func TestRandomGreyColor(t *testing.T) {
 }
 
 func TestRandomText(t *testing.T) {
-	option := option{}
+	opt := getOptionByText(OptionText{})
 
-	data := option.randomText()
+	data := opt.randomText()
 
 	require.Len(t, data, int(sizeDefault))
 }
 
 func TestRandomTextWithSize(t *testing.T) {
 	size := uint8(rand.Intn(len(characters)))
-	option := option{
-		Size: &size,
-	}
+	opt := getOptionByText(OptionText{
+		Size: size,
+	})
 
-	data := option.randomText()
+	data := opt.randomText()
 
 	require.Len(t, data, int(size))
 }
 
 func TestRandomTextWithPreset(t *testing.T) {
 	charactersPreset := "0123456789"
-	option := option{
-		CharactersPreset: &charactersPreset,
+	option := &option{
+		charactersPreset: charactersPreset,
 	}
 
 	data := option.randomText()
@@ -209,9 +196,9 @@ func TestRandomTextWithPreset(t *testing.T) {
 func TestRandomTextWithIgnoreCharacters(t *testing.T) {
 	charactersPreset := "0123456789"
 	ignoreCharacters := "095"
-	option := option{
-		CharactersPreset: &charactersPreset,
-		IgnoreCharacters: &ignoreCharacters,
+	option := &option{
+		charactersPreset: charactersPreset,
+		ignoreCharacters: ignoreCharacters,
 	}
 
 	data := option.randomText()

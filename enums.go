@@ -1,8 +1,8 @@
 package captcha
 
-type matchOperator string
+type mathOperator string
 
 const (
-	MathOperatorPlus  matchOperator = "+"
-	MathOperatorMinus matchOperator = "-"
+	MathOperatorPlus  mathOperator = "+"
+	MathOperatorMinus mathOperator = "-"
 )

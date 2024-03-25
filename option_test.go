@@ -1,6 +1,7 @@
 package captcha
 
 import (
+	"image/color"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,16 +12,16 @@ func TestGetOptionByText(t *testing.T) {
 	data := getOptionByText(option)
 
 	require.NotNil(t, data)
-	require.Nil(t, data.Size)
-	require.Nil(t, data.Width)
-	require.Nil(t, data.Height)
-	require.Nil(t, data.FontSize)
-	require.Nil(t, data.IsColor)
-	require.Nil(t, data.IsInverse)
-	require.Nil(t, data.Noise)
-	require.Nil(t, data.BackgroundColor)
-	require.Nil(t, data.IgnoreCharacters)
-	require.Nil(t, data.CharactersPreset)
+	require.Equal(t, data.size, sizeDefault)
+	require.Equal(t, data.width, widthDefault)
+	require.Equal(t, data.height, heightDefault)
+	require.Equal(t, data.backgroundColor, color.Transparent)
+	require.Equal(t, data.fontSize, uint(fontSizeDefault)*uint(ratioFontSize))
+	require.False(t, data.isColor)
+	require.False(t, data.isInverse)
+	require.Equal(t, data.curve, curveDefault)
+	require.Empty(t, data.ignoreCharacters)
+	require.Equal(t, data.charactersPreset, characters)
 }
 
 func TestGetOptionByMath(t *testing.T) {
@@ -28,15 +29,14 @@ func TestGetOptionByMath(t *testing.T) {
 	data := getOptionByMath(option)
 
 	require.NotNil(t, data)
-	require.Nil(t, data.Size)
-	require.Nil(t, data.Width)
-	require.Nil(t, data.Height)
-	require.Nil(t, data.FontSize)
-	require.Nil(t, data.IsColor)
-	require.Nil(t, data.IsInverse)
-	require.Nil(t, data.Noise)
-	require.Nil(t, data.BackgroundColor)
-	require.Nil(t, data.MathMax)
-	require.Nil(t, data.MathMin)
-	require.Nil(t, data.MathOperator)
+	require.Equal(t, data.width, widthDefault)
+	require.Equal(t, data.height, heightDefault)
+	require.Equal(t, data.backgroundColor, color.Transparent)
+	require.Equal(t, data.fontSize, uint(fontSizeDefault)*uint(ratioFontSize))
+	require.False(t, data.isColor)
+	require.False(t, data.isInverse)
+	require.Equal(t, data.curve, curveDefault)
+	require.Equal(t, data.mathMin, mathMinDefault)
+	require.Equal(t, data.mathMax, mathMaxDefault)
+	require.Contains(t, []mathOperator{MathOperatorMinus, MathOperatorPlus}, data.mathOperator)
 }

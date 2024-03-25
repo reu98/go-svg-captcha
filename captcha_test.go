@@ -44,8 +44,8 @@ func TestCreateByMathByOption(t *testing.T) {
 	minMath := uint8(rand.Uint32())
 	maxMath := uint16(minMath) + uint16(rand.Uint32())
 	option := OptionMath{
-		MathMin: &minMath,
-		MathMax: &maxMath,
+		MathMin: minMath,
+		MathMax: maxMath,
 	}
 	data, err := CreateByMath(option)
 
