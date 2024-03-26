@@ -1,6 +1,7 @@
 package captcha
 
 import (
+	"image/color"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -59,4 +60,15 @@ func TestCreateByMathByOption(t *testing.T) {
 
 	require.GreaterOrEqual(t, result, int(minMath)-int(maxMath))
 	require.LessOrEqual(t, result, int(maxMath)*2)
+}
+
+func TestCreateCaptcha(t *testing.T) {
+	opt := getOptionByText(OptionText{
+		BackgroundColor: color.Black,
+	})
+	text := opt.randomText()
+	capt, err := opt.createCaptcha(text)
+
+	require.NotEmpty(t, capt)
+	require.NoError(t, err)
 }

@@ -45,3 +45,22 @@ func TestDrawTextWithoutDefault(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 }
+
+func TestDrawTextWithError(t *testing.T) {
+	opt := getOptionByText(OptionText{
+		FontPath: "font.ttf",
+	})
+	text := opt.randomText()
+	data, err := opt.drawText(text)
+
+	require.Empty(t, data)
+	require.Error(t, err)
+}
+
+func TestLoadFontWithFontPathInvalid(t *testing.T) {
+	fontPath := "font.ttf"
+	font, err := loadFont(fontPath)
+
+	require.Nil(t, font)
+	require.Error(t, err)
+}
