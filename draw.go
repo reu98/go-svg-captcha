@@ -2,7 +2,6 @@ package captcha
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 
 	"github.com/reu98/go-svg-captcha/fonts"
@@ -10,11 +9,6 @@ import (
 )
 
 func (opt *option) drawText(text string) (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
 
 	fillColorMin := fillColorMinDefault
 	fillColorMax := fillColorMaxDefault
