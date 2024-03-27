@@ -59,7 +59,7 @@ func TestCreateByMathByOption(t *testing.T) {
 	require.NoError(t, err)
 
 	require.GreaterOrEqual(t, result, int(minMath)-int(maxMath))
-	require.LessOrEqual(t, result, int(maxMath*2))
+	require.LessOrEqual(t, result, int(maxMath)+int(minMath))
 }
 
 func TestCreateCaptcha(t *testing.T) {
