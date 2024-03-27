@@ -17,7 +17,10 @@ type Result struct {
 // CreateByText: generate a new captcha
 func CreateByText(option OptionText) (*Result, error) {
 	opt := getOptionByText(option)
-	text := opt.randomText()
+	text := opt.text
+	if text == "" {
+		text = opt.randomText()
+	}
 
 	data, err := opt.createCaptcha(text)
 	if err != nil {

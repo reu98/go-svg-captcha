@@ -72,3 +72,13 @@ func TestCreateCaptcha(t *testing.T) {
 	require.NotEmpty(t, capt)
 	require.NoError(t, err)
 }
+
+func TestCreateCaptchaWithText(t *testing.T) {
+	opt := getOptionByText(OptionText{
+		Text: "abcd",
+	})
+	capt, err := opt.createCaptcha(opt.text)
+
+	require.NotEmpty(t, capt)
+	require.NoError(t, err)
+}
