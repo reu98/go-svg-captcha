@@ -55,11 +55,11 @@ func TestCreateByMathByOption(t *testing.T) {
 	require.IsType(t, dataType, *data)
 	require.NotEmpty(t, (*data).Data)
 
-	result, err := strconv.Atoi((*data).Text)
+	result, err := strconv.Atoi(data.Text)
 	require.NoError(t, err)
 
 	require.GreaterOrEqual(t, result, int(minMath)-int(maxMath))
-	require.LessOrEqual(t, result, int(maxMath)*2)
+	require.LessOrEqual(t, result, int(maxMath*2))
 }
 
 func TestCreateCaptcha(t *testing.T) {
