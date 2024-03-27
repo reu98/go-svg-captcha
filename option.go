@@ -48,6 +48,10 @@ type OptionText struct {
 	// The characters that can be displayed in the captcha.
 	// Default: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
 	CharactersPreset string
+
+	// Generate With Text
+	// Note: Text is optional. If not provided, it will be generated randomly
+	Text string
 }
 
 type OptionMath struct {
@@ -100,6 +104,7 @@ type OptionMath struct {
 
 type option struct {
 	size             uint8
+	text             string
 	width            uint16
 	height           uint16
 	isColor          bool
@@ -165,6 +170,7 @@ func getOptionByText(opt OptionText) *option {
 		ignoreCharacters: opt.IgnoreCharacters,
 		charactersPreset: charPreset,
 		fontPath:         opt.FontPath,
+		text:             opt.Text,
 	}
 }
 
