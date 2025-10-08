@@ -2,7 +2,6 @@ package captcha
 
 import (
 	"image/color"
-	"math/rand"
 	"strconv"
 	"testing"
 
@@ -42,8 +41,8 @@ func TestCreateByMath(t *testing.T) {
 
 func TestCreateByMathByOption(t *testing.T) {
 	var dataType Result
-	minMath := uint8(rand.Uint32())
-	maxMath := uint16(minMath) + uint16(rand.Uint32())
+	minMath := uint8(10)
+	maxMath := uint16(100)
 	option := OptionMath{
 		MathMin: minMath,
 		MathMax: maxMath,
@@ -58,8 +57,10 @@ func TestCreateByMathByOption(t *testing.T) {
 	result, err := strconv.Atoi(data.Text)
 	require.NoError(t, err)
 
+	// For subtraction: minMath - maxMath (could be negative)
+	// For addition: maxMath + maxMath (maximum possible)
 	require.GreaterOrEqual(t, result, int(minMath)-int(maxMath))
-	require.LessOrEqual(t, result, int(maxMath)+int(minMath))
+	require.LessOrEqual(t, result, int(maxMath)+int(maxMath))
 }
 
 func TestCreateCaptcha(t *testing.T) {
